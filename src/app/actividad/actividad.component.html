@@ -1,0 +1,34 @@
+<div class="form">
+    <form [formGroup]="activityForm">
+        <div class="col-sm-5">
+            <label for="exampleInputEmail1" class="form-label">Nombre de la Actividad</label>
+            <input type="text" class="form-control" formControlName="name">
+        </div>
+
+        <div class="col-sm-5">
+            <label class="form-label">Fecha</label>
+            <input class="form-control" ngbDatepicker #dp="ngbDatepicker" (click)="dp.toggle()"
+                formControlName="dateRange" formControlName="dateFrom" />
+        </div>
+
+        <div class="col-sm-5">
+            <label class="form-label">Importe</label>
+            <input type="text" class="form-control" formControlName="import">
+        </div>
+
+        <div class="col-sm-5">
+            <label class="form-label">Dirección</label>
+            <input type="text" class="form-control" formControlName="address">
+        </div>
+
+        <!-- <div class="col-sm-5">
+            <button class="btn btn-sm btn-success" (click)="openTransporteModal(myModal)"><i
+                    class="fa-solid fa-plus"></i>
+                Transporte</button>
+        </div> -->
+
+        <button class="btn btn-outline-secondary" (click)="goToHome()">Cancelar</button>
+        <button type="submit" class="btn btn-primary">Confirmar</button>
+
+    </form>
+</div>
