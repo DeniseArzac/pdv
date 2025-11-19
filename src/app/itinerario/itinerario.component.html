@@ -13,8 +13,11 @@
       </div>
 
       <div class="col-sm-6">
-        <label class="form-label">Presupuesto</label>
-        <input type="text" class="form-control" formControlName="budget">
+        <label class="form-label">Presupuesto Inicial</label>
+        <div class="input-group">
+          <span class="input-group-text">$</span>
+          <input type="number" class="form-control" formControlName="budget">
+        </div>
       </div>
 
     </div>
@@ -37,26 +40,25 @@
       </div>
     </div>
 
-
-    <!-- ACORDEONES -->
-
     <div ngbAccordion class="mt-3">
 
       <!-- ACORDEÓN ACTIVIDADES -->
       <div ngbAccordionItem>
-        <h2 ngbAccordionHeader>
-          <button ngbAccordionButton>Actividades
-            <button class="btn btn-sm secondary" (click)="openActividadModal(activityModal)">
+        <h2 ngbAccordionHeader class="d-flex justify-content-between align-items-center w-100">
+          <label class="accordionTitle">Actividades</label>
+          <div class="d-flex align-items-center gap-2">
+            <button type="button" class="btn btn-sm secondary"
+              (click)="openActividadModal(activityModal); $event.stopPropagation()">
               <i class="fa-solid fa-plus"></i> Agregar
             </button>
-          </button>
+            <button ngbAccordionButton class="accordion-toggle-btn"></button>
+          </div>
 
         </h2>
 
         <div ngbAccordionCollapse>
           <div ngbAccordionBody>
 
-            <!-- Tabla actividades -->
             <table class="table table-sm custom-table">
               <thead>
                 <tr>
@@ -69,68 +71,74 @@
               </thead>
 
               <tbody>
-                <tr>
-                  <td>Magic Kingdom</td>
-                  <td>01/01/2025</td>
-                  <td>test</td>
-                  <td>$10000</td>
+                <tr *ngFor="let item of activities; let i = index">
+                  <td>{{ item?.name }}</td>
+                  <td>{{ item?.dateFrom }}</td>
+                  <td>{{ item?.address }}</td>
+                  <td>${{ item?.import }}</td>
                   <td>
-                    <button class="btn btn-sm btn-outline-danger">
+                    <button class="btn btn-sm btn-outline-danger" (click)="removeActivity(i)">
                       ✖
                     </button>
                   </td>
                 </tr>
               </tbody>
+
             </table>
 
           </div>
         </div>
+      </div>
 
-        <!-- ACORDEÓN TRANSPORTES -->
-        <div ngbAccordionItem>
-          <h2 ngbAccordionHeader>
-            <button ngbAccordionButton>Transportes
-              <button class="btn btn-sm secondary" (click)="openTransporteModal(transporteModal)">
-                <i class="fa-solid fa-plus"></i> Agregar
-              </button>
+      <!-- ACORDEÓN TRANSPORTES -->
+      <div ngbAccordionItem>
+        <h2 ngbAccordionHeader class="d-flex justify-content-between align-items-center w-100">
+          <label class="accordionTitle">Transportes</label>
+          <div class="d-flex align-items-center gap-2">
+            <button class="btn btn-sm secondary" (click)="openTransporteModal(transporteModal)">
+              <i class="fa-solid fa-plus"></i> Agregar
             </button>
-          </h2>
-
-          <div ngbAccordionCollapse>
-            <div ngbAccordionBody>
-
-              <!-- Tabla transporte -->
-              <table class="table table-sm custom-table">
-                <thead>
-                  <tr>
-                    <th>Tipo</th>
-                    <th>Fecha</th>
-                    <th>Dirección</th>
-                    <th>Importe</th>
-                    <th></th>
-                  </tr>
-                </thead>
-
-                <tbody>
-                  <tr>
-                   <td>Avión</td>
-              <td>18/11/2025</td>
-              <td>Magic Kingdom</td>
-              <td>$10</td>
-              <td>
-                <button class="btn btn-sm btn-outline-danger">
-                  ✖
-                </button> 
-              </td>
-                  </tr>
-                </tbody>
-              </table>
-
+             <button ngbAccordionButton class="accordion-toggle-btn"></button>
             </div>
+
+        </h2>
+
+        <div ngbAccordionCollapse>
+          <div ngbAccordionBody>
+
+            <table class="table table-sm custom-table">
+              <thead>
+                <tr>
+                  <th>Medio</th>
+                  <th>Fecha</th>
+                  <th>Destino</th>
+                  <th>Importe</th>
+                  <th></th>
+                </tr>
+              </thead>
+
+              <tbody>
+                <tr *ngFor="let item of transports; let i = index">
+                  <td>{{ item?.mode }}</td>
+                  <td>{{ item?.date }}</td>
+                  <td>{{ item?.destination }}</td>
+                  <td>${{ item?.import }}</td>
+                  <td>
+                    <button class="btn btn-sm btn-outline-danger" (click)="removeTransport(i)">
+                      ✖
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+
+            </table>
+
           </div>
         </div>
       </div>
+
     </div>
+
 
     <div class="bottom-buttons">
       <button class="btn btn-sm cancel" (click)="goToHome()">Cancelar</button>
@@ -168,7 +176,10 @@
 
         <div class="col-sm-9 mx-auto">
           <label class="form-label">Importe</label>
-          <input type="text" class="form-control" formControlName="import">
+          <div class="input-group">
+            <span class="input-group-text">$</span>
+            <input type="text" class="form-control" formControlName="import">
+          </div>
         </div>
 
       </form>
@@ -178,7 +189,8 @@
 
   <div class="modal-footer">
     <button class="btn cancel" (click)="cancelActivity(activityModal)">Cancelar</button>
-    <button type="submit" class="btn save">Guardar</button>
+    <button class="btn save" (click)="saveActivity(modal)">Guardar</button>
+
   </div>
 </ng-template>
 
@@ -191,37 +203,39 @@
 
   <div class="modal-body">
     <div class="d-flex justify-content-center">
-    <form [formGroup]="transportForm" class="w-75">
-      <div class="col-sm-9 mx-auto">
-        <label class="form-label">Medio de transporte</label>
-        <select class="form-select" formControlName="mode">
-          <option value="orlando">Avión</option>
-          <option value="paris">Tren</option>
-          <option value="cancun">Bus</option>
-        </select>
-      </div>
+      <form [formGroup]="transportForm" class="w-75">
+        <div class="col-sm-9 mx-auto">
+          <label class="form-label">Medio de transporte</label>
+          <select class="form-select" formControlName="mode">
+            <option value="orlando">Avión</option>
+            <option value="paris">Tren</option>
+            <option value="cancun">Bus</option>
+          </select>
+        </div>
 
-      <div class="col-sm-9 mx-auto">
-        <label class="form-label">Fecha</label>
-        <input class="form-control" ngbDatepicker #dp="ngbDatepicker" (click)="dp.toggle()" formControlName="dateRange"
-          formControlName="date" />
-      </div>
+        <div class="col-sm-9 mx-auto">
+          <label class="form-label">Fecha</label>
+          <input class="form-control" ngbDatepicker #dp="ngbDatepicker" (click)="dp.toggle()" formControlName="date" />
+        </div>
 
-      <div class="col-sm-9 mx-auto">
-        <label class="form-label">Destino</label>
-        <input type="number" class="form-control" formControlName="destination">
-      </div>
+        <div class="col-sm-9 mx-auto">
+          <label class="form-label">Destino</label>
+          <input type="number" class="form-control" formControlName="destination">
+        </div>
 
-      <div class="col-sm-9 mx-auto">
-        <label class="form-label">Importe</label>
-        <input type="number" class="form-control" formControlName="import">
-      </div>
-    </form>
+        <div class="col-sm-9 mx-auto">
+          <label class="form-label">Importe</label>
+          <div class="input-group">
+            <span class="input-group-text">$</span>
+            <input type="number" class="form-control" formControlName="import">
+          </div>
+        </div>
+      </form>
     </div>
   </div>
 
   <div class="modal-footer">
     <button class="btn cancel" (click)="cancelTransport(transporteModal)">Cancelar</button>
-    <button type="submit" class="btn save">Guardar</button>
+    <button class="btn save" (click)="saveTransport(modal)">Guardar</button>
   </div>
 </ng-template>

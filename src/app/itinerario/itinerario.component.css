@@ -9,9 +9,7 @@
 
 .horizontal-group {
     flex-direction: row !important;
-    /* 🔥 Esto sí los pone uno al lado del otro */
     align-items: flex-end;
-    /* opcional: alinea los inputs abajo */
 }
 
 
@@ -53,14 +51,34 @@
     justify-content: space-between;
 }
 
+.secondary i {
+    margin-right: 4px;
+    vertical-align: middle;
+}
+
 .secondary {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
     background-color: #E8DED4;
     color: #372F2B;
     border: 1px solid #D6C5B8;
-    margin-left: 530px;
     border-radius: 8px;
     font-family: "Inter", sans-serif;
     font-weight: 500;
+}
+
+.accordion-title-btn {
+    background: none;
+    border: none;
+    font-weight: 600;
+    padding: 0;
+}
+
+.accordionTitle {
+    font-size: 20px;
+    font-weight: 500 !important;
+    margin-left: 15px;
 }
 
 
@@ -97,6 +115,6 @@
     background: transparent;
 }
 
-.modal-title{
+.modal-title {
     margin-left: 115px;
 }
