@@ -1,9 +1,9 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
-import { FormControl, FormGroup, FormsModule, ReactiveFormsModule } from "@angular/forms";
+import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from "@angular/forms";
 import { Router } from '@angular/router';
 import { NgbAccordionModule, NgbDatepickerModule, NgbModal, NgbModalModule } from '@ng-bootstrap/ng-bootstrap';
-
+import { ToastrService } from 'ngx-toastr';
 @Component({
   selector: 'app-itinerario',
   standalone: true,
@@ -12,7 +12,7 @@ import { NgbAccordionModule, NgbDatepickerModule, NgbModal, NgbModalModule } fro
     CommonModule, FormsModule,
     NgbDatepickerModule,
     NgbModalModule,
-    NgbAccordionModule
+    NgbAccordionModule,
   ],
   templateUrl: './itinerario.component.html',
   styleUrl: './itinerario.component.css'
@@ -20,30 +20,34 @@ import { NgbAccordionModule, NgbDatepickerModule, NgbModal, NgbModalModule } fro
 export class ItinerarioComponent implements OnInit {
 
   itineraryForm: FormGroup = new FormGroup({
-    destination: new FormControl(null),
-    dateFrom: new FormControl(null),
-    dateTo: new FormControl(null),
-    budget: new FormControl(null)
+    destination: new FormControl(null, Validators.required),
+    dateFrom: new FormControl(null, Validators.required),
+    dateTo: new FormControl(null, Validators.required),
+    budget: new FormControl(null, Validators.required),
   });
 
   transportForm: FormGroup = new FormGroup({
-    mode: new FormControl(null),
-    date: new FormControl(null),
-    import: new FormControl(null),
-    destination: new FormControl(null)
+    mode: new FormControl(null, Validators.required),
+    date: new FormControl(null, Validators.required),
+    import: new FormControl(null, Validators.required),
+    destination: new FormControl(null, Validators.required)
   });
 
   activityForm: FormGroup = new FormGroup({
-    name: new FormControl(null),
-    dateFrom: new FormControl(null),
-    import: new FormControl(null),
-    address: new FormControl(null)
+    name: new FormControl(null, Validators.required),
+    dateFrom: new FormControl(null, Validators.required),
+    import: new FormControl(null, Validators.required),
+    address: new FormControl(null, Validators.required)
   });
 
   activities: any[] = [];
   transports: any[] = [];
+  total: any;
 
-  constructor(private router: Router, private modalService: NgbModal) {}
+
+  constructor(private router: Router,
+    private modalService: NgbModal,
+    private toastr: ToastrService) { }
 
   ngOnInit() {
     this.loadFromLocalStorage();
@@ -58,51 +62,116 @@ export class ItinerarioComponent implements OnInit {
       if (data.itinerary) {
         this.itineraryForm.patchValue(data.itinerary);
       }
+
       this.activities = data.activities || [];
       this.transports = data.transports || [];
+
+      this.calculateTotal();
     }
   }
 
   saveToLocalStorage() {
+    // if(!this.itineraryForm.invalid){
+    this.calculateTotal();
+
     const data = {
-      itinerary: this.itineraryForm.value,
+      itinerary: {
+        destination: this.itineraryForm.value.destination,
+        dateFrom: this.itineraryForm.value.dateFrom,
+        dateTo: this.itineraryForm.value.dateTo,
+        budget: this.itineraryForm.value.budget
+      },
       activities: this.activities,
-      transports: this.transports
+      transports: this.transports,
+      total: this.total
     };
-    debugger;
 
     localStorage.setItem('itineraryData', JSON.stringify(data));
+
+    // this.toastr.success('Itinerario creado exitosamente');
+    // }else{
+    //   this.toastr.error('Debe completar los campos del formulario.', 'Error')
+    // }
+  }
+
+  calculateTotal() {
+    const budget = Number(this.itineraryForm.value.budget) || 0;
+
+    const totalActivities = this.activities.reduce(
+      (acc, a) => acc + (Number(a.import) || 0),
+      0
+    );
+
+    const totalTransports = this.transports.reduce(
+      (acc, t) => acc + (Number(t.import) || 0),
+      0
+    );
+
+    this.total = budget - totalActivities - totalTransports;
   }
 
   // Actividad
 
-
   saveActivity(modal: any) {
-    this.activities.push(this.activityForm.value);
-    this.saveToLocalStorage();
-
-    this.activityForm.reset();
-    modal.close();
+    if (!this.activityForm.invalid) {
+      this.activities.push(this.activityForm.value);
+      this.calculateTotal();
+      this.saveToLocalStorage();
+      this.activityForm.reset();
+      modal.close();
+      this.toastr.success('Actividad agregada exitosamente');
+    } else {
+      this.toastr.error('Debe completar todos los campos del formulario.', 'Error');
+    }
   }
 
-  removeActivity(index: number) {
-    this.activities.splice(index, 1);
+  removeActivity(i: number) {
+    this.activities.splice(i, 1);
+    this.calculateTotal();
     this.saveToLocalStorage();
   }
 
   // Transporte
 
   saveTransport(modal: any) {
-    this.transports.push(this.transportForm.value);
-    this.saveToLocalStorage();
+    if (!this.transportForm.invalid) {
+      this.transports.push(this.transportForm.value);
+      this.calculateTotal();
+      this.saveToLocalStorage();
+      this.transportForm.reset();
+      modal.close();
+      this.toastr.success('Transporte agregado exitosamente');
 
-    this.transportForm.reset();
-    modal.close();
+    } else {
+      this.toastr.error('Debe completar todos los campos del formulario.', 'Error');
+    }
   }
 
-  removeTransport(index: number) {
-    this.transports.splice(index, 1);
+  removeTransport(i: number) {
+    this.transports.splice(i, 1);
+    this.calculateTotal();
     this.saveToLocalStorage();
+  }
+
+  delete() {
+    localStorage.removeItem('itineraryData');
+
+    // Limpia formularios
+    this.itineraryForm.reset();
+    this.activityForm.reset();
+    this.transportForm.reset();
+
+    this.activities = [];
+    this.transports = [];
+    this.total = null;
+  }
+
+  confirm() {
+    if (this.itineraryForm.valid) {
+      this.toastr.success('Itinerario creado exitosamente');
+    } else {
+      this.toastr.error('Debe completar los campos del formulario.', 'Error')
+    }
   }
 
   // Modales
@@ -115,11 +184,19 @@ export class ItinerarioComponent implements OnInit {
     this.modalService.open(content, { size: 'md' });
   }
 
+  openDeleteModal(content: any) {
+    this.modalService.open(content, { size: 'md' });
+  }
+
   cancelActivity(content: any) {
     this.modalService.dismissAll(content);
   }
 
   cancelTransport(content: any) {
+    this.modalService.dismissAll(content);
+  }
+
+  cancelDelete(content: any) {
     this.modalService.dismissAll(content);
   }
 

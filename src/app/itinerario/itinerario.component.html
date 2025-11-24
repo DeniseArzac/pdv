@@ -66,17 +66,17 @@
                   <th>Fecha</th>
                   <th>Dirección</th>
                   <th>Importe</th>
-                  <th>Eliminar</th>
+                  <th style="text-align: center;">Eliminar</th>
                 </tr>
               </thead>
 
               <tbody>
                 <tr *ngFor="let item of activities; let i = index">
                   <td>{{ item?.name }}</td>
-                  <td>{{ item?.dateFrom }}</td>
+                  <td *ngIf="item">{{ item?.dateFrom?.day}}-{{ item?.dateFrom?.month }}-{{ item?.dateFrom?.year }}</td>
                   <td>{{ item?.address }}</td>
-                  <td>${{ item?.import }}</td>
-                  <td>
+                  <td *ngIf="item">${{ item?.import }}</td>
+                  <td *ngIf="item" style="text-align: center;">
                     <button class="btn btn-sm btn-outline-danger" (click)="removeActivity(i)">
                       ✖
                     </button>
@@ -98,8 +98,8 @@
             <button class="btn btn-sm secondary" (click)="openTransporteModal(transporteModal)">
               <i class="fa-solid fa-plus"></i> Agregar
             </button>
-             <button ngbAccordionButton class="accordion-toggle-btn"></button>
-            </div>
+            <button ngbAccordionButton class="accordion-toggle-btn"></button>
+          </div>
 
         </h2>
 
@@ -113,17 +113,17 @@
                   <th>Fecha</th>
                   <th>Destino</th>
                   <th>Importe</th>
-                  <th></th>
+                  <th style="text-align: center;">Eliminar</th>
                 </tr>
               </thead>
 
               <tbody>
                 <tr *ngFor="let item of transports; let i = index">
                   <td>{{ item?.mode }}</td>
-                  <td>{{ item?.date }}</td>
+                  <td *ngIf="item">{{ item?.date.day }}-{{ item?.date.month }}-{{ item?.date.year }}</td>
                   <td>{{ item?.destination }}</td>
-                  <td>${{ item?.import }}</td>
-                  <td>
+                  <td *ngIf="item">${{ item?.import }}</td>
+                  <td *ngIf="item" style="text-align: center;">
                     <button class="btn btn-sm btn-outline-danger" (click)="removeTransport(i)">
                       ✖
                     </button>
@@ -136,13 +136,23 @@
           </div>
         </div>
       </div>
+      <div class="total">
+        <label class="form-label">
+          Total del presupuesto con los gastos aplicados: {{total}}
 
+        </label>
+      </div>
     </div>
 
-
     <div class="bottom-buttons">
-      <button class="btn btn-sm cancel" (click)="goToHome()">Cancelar</button>
-      <button type="submit" class="btn btn-sm save">Confirmar</button>
+      <button class="btn btn-sm cancel btn-left" (click)="goToHome()"><i class="fa-solid fa-arrow-left"></i>
+        Volver</button>
+      <div class="right-buttons">
+        <button class="btn btn-sm delete" (click)="openDeleteModal(deleteModal)"> <i
+            class="fa-regular fa-trash-can"></i> Eliminar</button>
+        <button type="submit" class="btn btn-sm save" (click)="confirm();"><i class="fa-regular fa-circle-check"></i>
+          Confirmar</button>
+      </div>
     </div>
   </form>
 </div>
@@ -188,8 +198,10 @@
 
 
   <div class="modal-footer">
-    <button class="btn cancel" (click)="cancelActivity(activityModal)">Cancelar</button>
-    <button class="btn save" (click)="saveActivity(modal)">Guardar</button>
+    <button class="btn btn-sm cancel" (click)="cancelActivity(activityModal)"><i class="fa-solid fa-ban"></i>
+      Cancelar</button>
+    <button class="btn btn-sm save" (click)="saveActivity(modal)"><i class="fa-regular fa-floppy-disk"></i>
+      Guardar</button>
 
   </div>
 </ng-template>
@@ -220,7 +232,7 @@
 
         <div class="col-sm-9 mx-auto">
           <label class="form-label">Destino</label>
-          <input type="number" class="form-control" formControlName="destination">
+          <input type="text" class="form-control" formControlName="destination">
         </div>
 
         <div class="col-sm-9 mx-auto">
@@ -235,7 +247,28 @@
   </div>
 
   <div class="modal-footer">
-    <button class="btn cancel" (click)="cancelTransport(transporteModal)">Cancelar</button>
-    <button class="btn save" (click)="saveTransport(modal)">Guardar</button>
+    <button class="btn btn-sm cancel" (click)="cancelTransport(transporteModal)"><i class="fa-solid fa-ban"></i>
+      Cancelar</button>
+    <button class="btn btn-sm save" (click)="saveTransport(modal)"><i class="fa-regular fa-floppy-disk"></i>
+      Guardar</button>
   </div>
+</ng-template>
+
+<!-- Modal Eliminar Itinerario -->
+<ng-template #deleteModal let-modal>
+  <div class="modal-header">
+    <h4 class="modal-title">Eliminar Itinerario</h4>
+    <button type="button" class="btn-close" aria-label="Close" (click)="modal.dismiss()"></button>
+  </div>
+
+  <div class="modal-body">
+    <label>Se eliminarán todos los datos registrados en el formulario. ¿Desea confirmar acción?</label>
+  </div>
+
+  <div class="modal-footer">
+    <button class="btn btn-sm cancel" (click)="cancelDelete(deleteModal)"><i class="fa-solid fa-ban"></i>
+      Cancelar</button>
+    <button class="btn btn-sm save" (click)="delete()"><i class="fa-solid fa-check"></i> Aceptar</button>
+  </div>
+
 </ng-template>

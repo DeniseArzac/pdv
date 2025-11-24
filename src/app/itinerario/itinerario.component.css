@@ -48,8 +48,16 @@
 
 .bottom-buttons {
     display: flex;
-    justify-content: space-between;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 20px;
 }
+
+.right-buttons {
+  display: flex;
+  gap: 10px;
+}
+
 
 .secondary i {
     margin-right: 4px;
@@ -68,6 +76,10 @@
     font-weight: 500;
 }
 
+.delete{
+     background-color: #df8989
+}
+
 .accordion-title-btn {
     background: none;
     border: none;
@@ -84,6 +96,7 @@
 
 .save {
     background-color: #A48A78;
+    color: #f0e6dd;
 }
 
 .cancel {
@@ -106,12 +119,13 @@
 
 .btn-outline-danger {
     border: none;
-    color: #A48A78;
+    color: #df8989;
     font-size: 1rem;
+    text-align: center;
 }
 
 .btn-outline-danger:hover {
-    color: #7a6556;
+    color: #df8989;
     background: transparent;
 }
 
