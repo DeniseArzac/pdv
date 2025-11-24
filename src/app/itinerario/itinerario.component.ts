@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from "@angular/forms";
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { NgbAccordionModule, NgbDatepickerModule, NgbModal, NgbModalModule } from '@ng-bootstrap/ng-bootstrap';
 import { ToastrService } from 'ngx-toastr';
 @Component({
@@ -47,51 +47,46 @@ export class ItinerarioComponent implements OnInit {
 
   constructor(private router: Router,
     private modalService: NgbModal,
-    private toastr: ToastrService) { }
+    private toastr: ToastrService,
+    private activatedRoute: ActivatedRoute) { }
 
   ngOnInit() {
-    this.loadFromLocalStorage();
-  }
+    let mode = this.activatedRoute.snapshot.queryParamMap.get('mode');
+    let index = this.activatedRoute.snapshot.queryParamMap.get('index');
 
-  loadFromLocalStorage() {
-    const savedData = localStorage.getItem('itineraryData');
-
-    if (savedData) {
-      const data = JSON.parse(savedData);
-
-      if (data.itinerary) {
-        this.itineraryForm.patchValue(data.itinerary);
-      }
-
-      this.activities = data.activities || [];
-      this.transports = data.transports || [];
-
-      this.calculateTotal();
+    if (mode === 'view' && index !== null) {
+      const all = JSON.parse(localStorage.getItem('itineraryData') || '[]');
+      const data = all[index];
+      this.loadFromLocalStorage(data);
     }
   }
 
+  loadFromLocalStorage(data: any) {
+    if (data?.itinerary) {
+      this.itineraryForm.patchValue(data.itinerary);
+    }
+
+    this.activities = data.activities || [];
+    this.transports = data.transports || [];
+
+    this.calculateTotal();
+  }
+
   saveToLocalStorage() {
-    // if(!this.itineraryForm.invalid){
     this.calculateTotal();
 
-    const data = {
-      itinerary: {
-        destination: this.itineraryForm.value.destination,
-        dateFrom: this.itineraryForm.value.dateFrom,
-        dateTo: this.itineraryForm.value.dateTo,
-        budget: this.itineraryForm.value.budget
-      },
+    const newItinerary = {
+      itinerary: this.itineraryForm.value,
       activities: this.activities,
       transports: this.transports,
       total: this.total
     };
 
-    localStorage.setItem('itineraryData', JSON.stringify(data));
+    let all = JSON.parse(localStorage.getItem('itineraryData') || '[]');
 
-    // this.toastr.success('Itinerario creado exitosamente');
-    // }else{
-    //   this.toastr.error('Debe completar los campos del formulario.', 'Error')
-    // }
+    all.push(newItinerary);
+
+    localStorage.setItem('itineraryData', JSON.stringify(all));
   }
 
   calculateTotal() {
@@ -116,7 +111,7 @@ export class ItinerarioComponent implements OnInit {
     if (!this.activityForm.invalid) {
       this.activities.push(this.activityForm.value);
       this.calculateTotal();
-      this.saveToLocalStorage();
+      // this.saveToLocalStorage();
       this.activityForm.reset();
       modal.close();
       this.toastr.success('Actividad agregada exitosamente');
@@ -137,7 +132,7 @@ export class ItinerarioComponent implements OnInit {
     if (!this.transportForm.invalid) {
       this.transports.push(this.transportForm.value);
       this.calculateTotal();
-      this.saveToLocalStorage();
+      // this.saveToLocalStorage();
       this.transportForm.reset();
       modal.close();
       this.toastr.success('Transporte agregado exitosamente');
@@ -168,6 +163,7 @@ export class ItinerarioComponent implements OnInit {
 
   confirm() {
     if (this.itineraryForm.valid) {
+      this.saveToLocalStorage();
       this.toastr.success('Itinerario creado exitosamente');
     } else {
       this.toastr.error('Debe completar los campos del formulario.', 'Error')
