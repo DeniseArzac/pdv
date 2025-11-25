@@ -44,6 +44,9 @@ export class ItinerarioComponent implements OnInit {
   transports: any[] = [];
   total: any;
 
+  currentIndex: number | null = null;
+  deleteModalRef: any;
+
 
   constructor(private router: Router,
     private modalService: NgbModal,
@@ -55,8 +58,10 @@ export class ItinerarioComponent implements OnInit {
     let index = this.activatedRoute.snapshot.queryParamMap.get('index');
 
     if (mode === 'view' && index !== null) {
+      this.currentIndex = Number(index);
+
       const all = JSON.parse(localStorage.getItem('itineraryData') || '[]');
-      const data = all[index];
+      const data = all[this.currentIndex];
       this.loadFromLocalStorage(data);
     }
   }
@@ -75,7 +80,7 @@ export class ItinerarioComponent implements OnInit {
   saveToLocalStorage() {
     this.calculateTotal();
 
-    const newItinerary = {
+    const newData = {
       itinerary: this.itineraryForm.value,
       activities: this.activities,
       transports: this.transports,
@@ -84,10 +89,16 @@ export class ItinerarioComponent implements OnInit {
 
     let all = JSON.parse(localStorage.getItem('itineraryData') || '[]');
 
-    all.push(newItinerary);
+    // SI ESTOY EDITANDO
+    if (this.currentIndex !== null) {
+      all[this.currentIndex] = newData;
+    } else {
+      all.push(newData);
+    }
 
     localStorage.setItem('itineraryData', JSON.stringify(all));
   }
+
 
   calculateTotal() {
     const budget = Number(this.itineraryForm.value.budget) || 0;
@@ -111,7 +122,6 @@ export class ItinerarioComponent implements OnInit {
     if (!this.activityForm.invalid) {
       this.activities.push(this.activityForm.value);
       this.calculateTotal();
-      // this.saveToLocalStorage();
       this.activityForm.reset();
       modal.close();
       this.toastr.success('Actividad agregada exitosamente');
@@ -132,7 +142,6 @@ export class ItinerarioComponent implements OnInit {
     if (!this.transportForm.invalid) {
       this.transports.push(this.transportForm.value);
       this.calculateTotal();
-      // this.saveToLocalStorage();
       this.transportForm.reset();
       modal.close();
       this.toastr.success('Transporte agregado exitosamente');
@@ -149,9 +158,13 @@ export class ItinerarioComponent implements OnInit {
   }
 
   delete() {
-    localStorage.removeItem('itineraryData');
+    const all = JSON.parse(localStorage.getItem('itineraryData') || '[]');
 
-    // Limpia formularios
+    if (this.currentIndex !== null && all[this.currentIndex]) {
+      all.splice(this.currentIndex, 1);
+      localStorage.setItem('itineraryData', JSON.stringify(all));
+    }
+
     this.itineraryForm.reset();
     this.activityForm.reset();
     this.transportForm.reset();
@@ -159,14 +172,29 @@ export class ItinerarioComponent implements OnInit {
     this.activities = [];
     this.transports = [];
     this.total = null;
+    if (this.deleteModalRef) {
+      this.deleteModalRef.close();
+    }
+
+    this.toastr.success('Itinerario eliminado exitosamente');
+
+    this.router.navigate(['/']);
   }
 
   confirm() {
     if (this.itineraryForm.valid) {
+
       this.saveToLocalStorage();
-      this.toastr.success('Itinerario creado exitosamente');
+
+      if (this.currentIndex !== null) {
+        this.toastr.success('Itinerario actualizado exitosamente');
+      } else {
+        this.toastr.success('Itinerario creado exitosamente');
+      }
+
+      this.router.navigate(['/']);
     } else {
-      this.toastr.error('Debe completar los campos del formulario.', 'Error')
+      this.toastr.error('Debe completar los campos del formulario.', 'Error');
     }
   }
 
@@ -181,7 +209,7 @@ export class ItinerarioComponent implements OnInit {
   }
 
   openDeleteModal(content: any) {
-    this.modalService.open(content, { size: 'md' });
+    this.deleteModalRef = this.modalService.open(content, { size: 'md' });
   }
 
   cancelActivity(content: any) {
